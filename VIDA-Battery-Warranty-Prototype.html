@@ -1,0 +1,1467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VIDA Battery Warranty Prototype</title>
+<style>
+  :root{
+    --wa-header:#008069;
+    --wa-green:#00a884;
+    --wa-bg:#efeae2;
+    --wa-in:#ffffff;
+    --wa-out:#d9fdd3;
+    --wa-text:#111b21;
+    --wa-meta:#667781;
+    --wa-link:#027eb5;
+    --wa-tick:#53bdeb;
+    --wa-chip:#ffffff;
+    --vida:#ff5a1f;
+    --stage:#e9edef;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:radial-gradient(1200px 700px at 50% 0%, #f7f8fa 0%, var(--stage) 60%, #dfe3e6 100%);
+    color:var(--wa-text);
+    display:flex;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- Phone frame (desktop) ---------- */
+  .phone{
+    width:390px;height:min(844px, calc(100vh - 48px));
+    border-radius:54px;padding:12px;background:#0d0f10;
+    box-shadow:0 0 0 2px #2a2d30, 0 30px 80px rgba(17,27,33,.28), 0 8px 24px rgba(17,27,33,.18);
+    position:relative;
+  }
+  .screen{
+    width:100%;height:100%;border-radius:42px;overflow:hidden;
+    background:var(--wa-bg);display:flex;flex-direction:column;position:relative;
+  }
+  .island{position:absolute;top:22px;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#000;border-radius:20px;z-index:5}
+
+  .statusbar{
+    height:50px;flex:none;background:var(--wa-header);color:#fff;
+    display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 8px 34px;
+    font-size:15px;font-weight:600;letter-spacing:.2px;
+  }
+  .statusbar .icons{display:flex;gap:6px;align-items:center}
+  .statusbar svg{display:block}
+
+  /* ---------- Header ---------- */
+  header.chat-head{
+    flex:none;background:var(--wa-header);color:#fff;
+    display:flex;align-items:center;gap:6px;padding:6px 6px 8px 4px;
+  }
+  .icon-btn{
+    appearance:none;border:0;background:transparent;color:inherit;cursor:pointer;
+    width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;
+    transition:background .15s;
+  }
+  .icon-btn:hover{background:rgba(255,255,255,.12)}
+  .icon-btn:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+  .avatar{
+    width:38px;height:38px;border-radius:50%;flex:none;
+    background:linear-gradient(135deg,#ff7a3d,var(--vida));
+    display:grid;place-items:center;color:#fff;font-weight:800;font-size:10px;letter-spacing:.4px;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.25);
+  }
+  .who{flex:1;min-width:0;line-height:1.2}
+  .who .name{display:flex;align-items:center;gap:5px;font-size:16.5px;font-weight:600}
+  .who .sub{font-size:12.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ---------- Chat area ---------- */
+  main.chat{
+    flex:1;overflow-y:auto;padding:10px 12px 8px;position:relative;
+    background-color:var(--wa-bg);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' stroke='%23c9c1b4' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round' opacity='.55'%3E%3Ccircle cx='22' cy='24' r='8'/%3E%3Cpath d='M64 14l-6 12h7l-5 12'/%3E%3Cpath d='M104 22c6-8 18-8 18 2 0 8-18 16-18 16s-18-8-18-16c0-10 12-10 18-2z' transform='translate(0 -4) scale(.8) translate(26 6)'/%3E%3Crect x='130' y='14' width='16' height='22' rx='3'/%3E%3Cpath d='M136 11h4'/%3E%3Cpath d='M14 70c8-6 18-6 26 0'/%3E%3Ccircle cx='70' cy='78' r='3'/%3E%3Cpath d='M96 64l10 10M106 64L96 74'/%3E%3Cpath d='M128 80a10 10 0 1 1 20 0'/%3E%3Cpath d='M18 120l8-8 8 8-8 8z'/%3E%3Cpath d='M56 112h20M66 102v20'/%3E%3Ccircle cx='104' cy='118' r='9'/%3E%3Ccircle cx='104' cy='118' r='3'/%3E%3Cpath d='M134 108l-5 10h6l-4 10'/%3E%3Cpath d='M40 150c4-4 10-4 14 0'/%3E%3Cpath d='M90 150h14'/%3E%3C/g%3E%3C/svg%3E");
+    scroll-behavior:smooth;
+  }
+  .chat::-webkit-scrollbar{width:6px}
+  .chat::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:3px}
+
+  .sys{display:flex;justify-content:center;margin:6px 0 10px}
+  .sys span{
+    background:#fff;color:#54656f;font-size:12.5px;padding:5px 12px;border-radius:8px;
+    box-shadow:0 1px .5px rgba(11,20,26,.13);text-align:center;max-width:88%;line-height:1.35;
+  }
+  .sys.note span{background:#ffeecd;color:#54656f;font-size:12px}
+
+  .row{display:flex;margin:2px 0}
+  .row.in{justify-content:flex-start}
+  .row.out{justify-content:flex-end}
+  .row + .row.in.first, .row + .row.out.first{margin-top:10px}
+
+  .bubble{
+    position:relative;max-width:84%;padding:6px 8px 8px 9px;border-radius:8px;
+    font-size:14.6px;line-height:1.38;box-shadow:0 1px .5px rgba(11,20,26,.13);
+    word-wrap:break-word;overflow-wrap:anywhere;
+  }
+  .in .bubble{background:var(--wa-in)}
+  .out .bubble{background:var(--wa-out)}
+  .first.in .bubble{border-top-left-radius:0}
+  .first.out .bubble{border-top-right-radius:0}
+  .first.in .bubble::before,.first.out .bubble::before{
+    content:"";position:absolute;top:0;width:8px;height:13px;
+  }
+  .first.in .bubble::before{left:-8px;background:var(--wa-in);clip-path:polygon(100% 0,0 0,100% 100%)}
+  .first.out .bubble::before{right:-8px;background:var(--wa-out);clip-path:polygon(0 0,100% 0,0 100%)}
+
+  .meta{
+    float:right;margin:6px 0 -4px 10px;font-size:11px;color:var(--wa-meta);
+    display:inline-flex;align-items:center;gap:3px;white-space:nowrap;position:relative;top:4px;
+  }
+  .ticks{color:var(--wa-meta);transition:color .3s}
+  .ticks.read{color:var(--wa-tick)}
+
+  /* Business template message */
+  .tpl{padding:0;max-width:88%;width:300px;overflow:hidden}
+  .tpl .media{
+    height:96px;position:relative;margin:4px 4px 0;border-radius:6px;overflow:hidden;
+    background:
+      radial-gradient(120px 90px at 82% 30%, rgba(255,255,255,.25), transparent 70%),
+      linear-gradient(135deg,#1c1f24 0%,#2b2f36 55%,#ff5a1f 140%);
+    color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:12px 14px;
+  }
+  .tpl .media .kicker{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;opacity:.8}
+  .tpl .media .headline{font-size:19px;font-weight:700;line-height:1.2;margin-top:2px}
+  .tpl .media .bolt{position:absolute;right:14px;top:12px;opacity:.95}
+  .tpl .media .confetti{position:absolute;inset:0;pointer-events:none}
+  .tpl .body{padding:8px 10px 8px 10px}
+  .tpl .body p{margin:0 0 8px}
+  .tpl .body p:last-of-type{margin-bottom:0}
+  .tpl .body strong{font-weight:600}
+  .tpl .link{color:var(--wa-link);text-decoration:none;word-break:break-all}
+  .tpl .footer{font-size:12.5px;color:var(--wa-meta);padding:0 10px 8px;display:flow-root}
+  .tpl .footer .meta{margin-top:0}
+
+  .tpl-btns{border-top:1px solid #e9edef}
+  .tpl-btn{
+    appearance:none;border:0;background:#fff;width:100%;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:11px 10px;font:inherit;font-size:14.5px;font-weight:500;color:var(--wa-link);
+    cursor:pointer;transition:background .15s;
+  }
+  .tpl-btn + .tpl-btn{border-top:1px solid #e9edef}
+  .tpl-btn:hover{background:#f5f6f6}
+  .tpl-btn:active{background:#e9edef}
+  .tpl-btn:focus-visible{outline:2px solid var(--wa-link);outline-offset:-3px}
+  .tpl-btn[disabled]{color:#8696a0;cursor:default;background:#fff}
+  .tpl-btn.primary{font-weight:600}
+
+  /* Typing indicator */
+  .typing .bubble{padding:10px 14px}
+  .dots{display:flex;gap:4px}
+  .dots i{width:7px;height:7px;border-radius:50%;background:#8696a0;animation:blink 1.2s infinite}
+  .dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-2px)}}
+
+  .pop{animation:pop .22s ease-out}
+  @keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+
+  /* ---------- Composer ---------- */
+  footer.composer{
+    flex:none;display:flex;align-items:flex-end;gap:6px;padding:6px 6px 10px;background:transparent;
+  }
+  .field{
+    flex:1;min-width:0;display:flex;align-items:flex-end;background:#fff;border-radius:24px;min-height:46px;
+    padding:3px 4px;box-shadow:0 1px .5px rgba(11,20,26,.13);
+  }
+  .field .icon-btn{color:#54656f;width:38px;height:38px}
+  .field .icon-btn:hover{background:#f0f2f5}
+  .field .icon-btn:focus-visible{outline-color:var(--wa-green)}
+  .field textarea{
+    flex:1;min-width:0;width:0;border:0;outline:0;resize:none;font:inherit;font-size:15.5px;line-height:20px;
+    padding:10px 4px;max-height:100px;background:transparent;color:var(--wa-text);
+  }
+  .field textarea::placeholder{color:#8696a0}
+  .send{
+    width:48px;height:48px;border-radius:50%;border:0;background:var(--wa-green);color:#fff;
+    display:grid;place-items:center;cursor:pointer;flex:none;transition:background .15s, transform .1s;
+    box-shadow:0 1px 3px rgba(11,20,26,.2);
+  }
+  .send:hover{background:#06967a}
+  .send:active{transform:scale(.95)}
+  .send:focus-visible{outline:3px solid #9de1d1;outline-offset:2px}
+  .send .i-send{display:none}
+  .send.has-text .i-send{display:block}
+  .send.has-text .i-mic{display:none}
+
+  .home-ind{height:20px;flex:none;display:grid;place-items:center;background:var(--wa-bg)}
+  .home-ind::after{content:"";width:134px;height:5px;border-radius:3px;background:#111}
+
+  /* Toast */
+  .toast{
+    position:absolute;left:50%;bottom:92px;transform:translate(-50%,10px);
+    background:rgba(17,27,33,.92);color:#fff;font-size:13px;padding:8px 14px;border-radius:18px;
+    opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;white-space:nowrap;z-index:10;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+  /* =====================================================================
+     VIDA APP (opened from the WhatsApp CTA) — splash → in-app ACKO mWeb
+     ===================================================================== */
+  .app{
+    --ink:#121314;--ink-2:#4a4f55;--ink-3:#8a9097;--line:#e3e5e8;--app-bg:#eceef1;--card:#fff;
+    position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;
+    background:var(--app-bg);color:var(--ink);overflow:hidden;
+  }
+  .app[hidden]{display:none}
+  .app.opening{animation:appIn .42s cubic-bezier(.2,.8,.2,1)}
+  .app.closing{animation:appOut .28s ease-in forwards}
+  @keyframes appIn{from{opacity:0;transform:scale(.86);border-radius:42px}to{opacity:1;transform:none}}
+  @keyframes appOut{to{opacity:0;transform:scale(.9)}}
+
+  .app-status{
+    position:relative;z-index:4;height:50px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 30px 8px 28px;font-size:15px;font-weight:600;color:var(--ink);transition:color .3s;
+  }
+  .app.is-splash .app-status{color:#fff}
+  .app-status .icons{display:flex;gap:6px;align-items:center}
+  .crumb{
+    appearance:none;border:0;background:none;color:inherit;font:inherit;font-size:13px;font-weight:600;
+    display:flex;align-items:center;gap:1px;padding:2px 4px;margin-left:-4px;border-radius:6px;cursor:pointer;
+  }
+  .crumb:hover{opacity:.75}
+  .crumb:focus-visible{outline:2px solid var(--vida);outline-offset:1px}
+
+  /* Splash */
+  .splash{
+    position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:
+      radial-gradient(260px 260px at 50% 46%, rgba(255,90,31,.22), transparent 70%),
+      linear-gradient(180deg,#0b0b0c 0%,#141517 100%);
+    color:#fff;transition:opacity .45s ease;
+  }
+  .splash.done{opacity:0;pointer-events:none}
+  .splash .kick{font-size:12px;letter-spacing:4px;text-transform:uppercase;opacity:.65;margin-bottom:8px}
+  .vida-mark{font-size:56px;font-weight:800;letter-spacing:12px;margin-right:-12px;line-height:1;
+    animation:markIn .7s cubic-bezier(.2,.8,.2,1) both}
+  .vida-mark i{font-style:normal;color:var(--vida)}
+  @keyframes markIn{from{opacity:0;transform:translateY(8px);letter-spacing:20px}to{opacity:1;transform:none}}
+  .loader{width:96px;height:3px;border-radius:2px;background:rgba(255,255,255,.14);margin-top:34px;overflow:hidden;position:relative}
+  .loader::after{content:"";position:absolute;inset:0;width:40%;background:var(--vida);border-radius:2px;animation:load 1.1s ease-in-out infinite}
+  @keyframes load{from{transform:translateX(-110%)}to{transform:translateX(260%)}}
+  .splash .powered{position:absolute;bottom:44px;font-size:11.5px;opacity:.5;letter-spacing:.4px}
+
+  /* App chrome */
+  .app-head{flex:none;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:6px 8px 8px;position:relative}
+  .app-head h1{margin:0;text-align:center;font-size:15px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-2)}
+  .app .icon-btn{color:var(--ink)}
+  .app .icon-btn:hover{background:rgba(0,0,0,.06)}
+  .app .icon-btn:focus-visible{outline:2px solid var(--vida);outline-offset:-2px}
+  .app-head{grid-template-columns:56px 1fr 56px}
+  .host-mark{justify-self:end;margin-right:8px;font-size:12px;font-weight:800;letter-spacing:2.5px;color:var(--ink)}
+  .host-mark i{font-style:normal;color:var(--vida)}
+
+  /* In-app browser toolbar */
+  .wv-bar{
+    flex:none;position:relative;display:flex;align-items:center;gap:4px;padding:6px 8px;
+    background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    box-shadow:0 1px 3px rgba(18,19,20,.05);z-index:1;
+  }
+  .wv-btn{
+    appearance:none;border:0;background:transparent;color:var(--ink-2);cursor:pointer;flex:none;
+    width:34px;height:34px;border-radius:50%;display:grid;place-items:center;transition:background .15s;
+  }
+  .wv-btn:hover{background:#f0f1f3;color:var(--ink)}
+  .wv-btn:focus-visible{outline:2px solid var(--vida);outline-offset:-2px}
+  .url{
+    flex:1;min-width:0;height:34px;display:flex;align-items:center;justify-content:center;gap:6px;
+    background:#f0f1f3;border-radius:17px;padding:0 12px;font-size:14px;
+  }
+  .url .lock{color:#1e8e3e;flex:none}
+  .url .addr{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .url .dom{color:var(--ink);font-weight:500}
+  .url .path{color:var(--ink-3)}
+  .wv-progress{position:absolute;left:0;bottom:-1px;height:2px;width:0;background:var(--vida);opacity:1}
+  .wv-progress.run{animation:wvp .7s ease-out forwards}
+  @keyframes wvp{0%{width:0;opacity:1}80%{width:100%;opacity:1}100%{width:100%;opacity:0}}
+
+  .webview{flex:1;overflow-y:auto;padding:12px 16px 24px;scroll-behavior:smooth}
+  .webview::-webkit-scrollbar{width:0}
+  .page[hidden]{display:none}
+  .page.enter{animation:pageIn .3s ease-out}
+  @keyframes pageIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+
+  .ew-intro{margin:4px 0 12px;font-size:15px;line-height:1.45;color:var(--ink-2)}
+  .by-acko{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px;margin-bottom:8px;
+    font-size:12.5px;color:var(--ink-2);
+  }
+  .by-acko .l{display:flex;align-items:center;gap:6px}
+  .acko-mark{font-weight:800;letter-spacing:1.2px;color:#4f2ad8;font-size:13px}
+  .sample-note{font-size:11.5px;color:#8a5a00;background:#fff5e0;border-radius:8px;padding:6px 10px;margin-bottom:14px;line-height:1.4}
+  .ew-label{margin:0 0 8px;font-size:15px;font-weight:500;color:var(--ink-3)}
+
+  .plan{
+    position:relative;background:var(--card);border-radius:16px;padding:18px 18px 16px;margin-bottom:14px;
+    border:2px solid transparent;cursor:pointer;transition:border-color .2s, box-shadow .2s, transform .1s;
+    box-shadow:0 1px 2px rgba(18,19,20,.04);
+  }
+  .plan:hover{box-shadow:0 4px 14px rgba(18,19,20,.08)}
+  .plan:has(input:focus-visible){outline:2px solid var(--vida);outline-offset:2px}
+  .plan.selected{border-color:var(--vida);box-shadow:0 6px 20px rgba(255,90,31,.14)}
+  .plan-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;cursor:pointer}
+  .plan-name{font-size:24px;font-weight:400;letter-spacing:-.2px;line-height:1.2}
+  .radio{width:22px;height:22px;border-radius:50%;border:2px solid #c3c8ce;flex:none;margin-top:4px;display:grid;place-items:center;transition:all .2s}
+  .plan.selected .radio{border-color:var(--vida);background:var(--vida)}
+  .plan.selected .radio::after{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
+  .pill{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#8a5a00;background:#fff1d6;border-radius:4px;padding:2px 6px;margin-top:6px}
+  .sel-tag{display:none;font-size:10.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#fff;background:var(--vida);border-radius:4px;padding:2px 6px;margin:6px 0 0 6px}
+  .plan.selected .sel-tag{display:inline-block}
+  .plan ul{margin:12px 0 14px;padding:0;list-style:none}
+  .plan li{position:relative;padding-left:22px;font-size:14.5px;line-height:1.4;color:var(--ink-2);margin-bottom:5px}
+  .plan li::before{content:"";position:absolute;left:6px;top:8px;width:5px;height:5px;background:var(--ink-2)}
+  .valid{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink)}
+  .plan-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);margin-top:14px;padding-top:14px}
+  .price{font-size:24px;font-weight:800;letter-spacing:-.3px}
+  .buy,.btn{
+    appearance:none;border:0;cursor:pointer;font:inherit;font-size:15px;font-weight:500;border-radius:8px;
+    padding:12px 22px;min-width:150px;background:var(--ink);color:#fff;transition:background .15s, transform .1s;
+  }
+  .buy:hover,.btn:hover{background:#2c2f33}
+  .buy:active,.btn:active{transform:scale(.98)}
+  .buy:focus-visible,.btn:focus-visible{outline:3px solid #ffb595;outline-offset:2px}
+  .plan.selected .buy{background:var(--vida)}
+  .plan.selected .buy:hover{background:#e84c14}
+  .powered-by{display:flex;align-items:center;justify-content:center;gap:8px;margin:28px 0 8px;font-size:15px;color:#7b8798}
+  .powered-by img{height:20px;width:auto;display:block}
+
+  /* Review page */
+  .pg-title{font-size:22px;font-weight:600;margin:6px 0 4px;letter-spacing:-.2px}
+  .pg-sub{font-size:13.5px;color:var(--ink-2);margin:0 0 14px}
+  .card{background:#fff;border-radius:16px;padding:16px 18px;margin-bottom:12px}
+  .card h3{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-3)}
+  .sum-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .sum-name{font-size:19px;font-weight:500}
+  .link-btn{appearance:none;border:0;background:none;color:var(--vida);font:inherit;font-size:14px;font-weight:600;cursor:pointer;padding:4px 6px;margin:-4px -6px;border-radius:6px}
+  .link-btn:hover{text-decoration:underline}
+  .link-btn:focus-visible{outline:2px solid var(--vida)}
+  .kv{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:7px 0;border-bottom:1px dashed var(--line)}
+  .kv:last-child{border-bottom:0}
+  .kv span:first-child{color:var(--ink-2)}
+  .kv span:last-child{font-weight:500;text-align:right}
+  .kv.total{font-size:16px;padding-top:10px}
+  .kv.total span{font-weight:700;color:var(--ink)}
+  .fine{font-size:12px;color:var(--ink-3);line-height:1.5;margin:4px 4px 0}
+
+  .app-cta{
+    flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:#fff;border-top:1px solid var(--line);padding:12px 16px;
+  }
+  .app-cta[hidden]{display:none}
+  .app-cta .amt small{display:block;font-size:11.5px;color:var(--ink-3)}
+  .app-cta .amt b{font-size:20px}
+  .btn.primary{background:var(--vida)}
+  .btn.primary:hover{background:#e84c14}
+  .btn.ghost{background:#f1f2f4;color:var(--ink)}
+  .btn.ghost:hover{background:#e6e8eb}
+  .app-home{height:20px;flex:none;display:grid;place-items:center;background:#fff}
+  .app-home::after{content:"";width:134px;height:5px;border-radius:3px;background:#111}
+  .app.is-splash .app-home{background:transparent}
+  .app.is-splash .app-home::after{background:#fff;position:relative;z-index:4}
+
+  /* ===== ACKO payment page (mWeb) — visual direction from Figma "Payment Page" ===== */
+  .page.pay{
+    --a-ink:#192839;--a-sub:#40566d;--a-mute:#768ea7;--a-line:rgba(108,132,157,.18);
+    --a-pri:#305eff;--a-pri-soft:rgba(48,94,255,.09);--a-pos:#008743;
+    margin:-12px -16px -24px;color:var(--a-ink);min-height:calc(100% + 36px);display:flex;flex-direction:column;
+  }
+  .pay-hero{
+    padding:18px 20px 34px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(220px 160px at 85% 0%, rgba(140,110,255,.45), transparent 70%),
+      radial-gradient(260px 200px at 0% 100%, rgba(80,60,200,.5), transparent 70%),
+      linear-gradient(165deg,#120c2c 0%,#24175e 55%,#2d1f78 100%);
+  }
+  .pay-hero .logo{height:24px;width:auto;display:block;margin-bottom:16px}
+  .ps{background:#ebe7fd;border-radius:12px;padding:12px 16px 14px}
+  .ps-title{appearance:none;border:0;background:none;padding:0;width:100%;font:inherit;cursor:pointer;
+    display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:500;color:var(--a-sub);border-radius:6px}
+  .ps-title:hover{color:var(--a-ink)}
+  .ps-title:focus-visible{outline:2px solid var(--a-pri);outline-offset:3px}
+  .ps-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-top:12px}
+  .ps-row b{font-size:14px;font-weight:600;display:block}
+  .ps-row small{font-size:12px;color:var(--a-sub);display:block;margin-top:2px}
+  .ps-row .amt{font-size:17px;font-weight:600;white-space:nowrap}
+  .ps-dash{border-top:1.5px dashed #c9c2ee;margin:12px 0 8px}
+  .ps-kv{display:flex;justify-content:space-between;font-size:12.5px;color:var(--a-sub);padding:2px 0}
+  .ps-kv.tot{color:var(--a-ink);font-weight:600;font-size:13.5px;padding-top:4px}
+  .pay-body{background:#fff;border-radius:20px 20px 0 0;margin-top:-18px;position:relative;padding:20px 20px 8px;flex:1}
+  .pay-body h2{margin:0 0 4px;font-size:18px;font-weight:600}
+  .pay-lbl{font-size:14px;color:var(--a-sub);margin:16px 0 12px}
+  .methods{border:1px solid var(--a-line);border-radius:12px;overflow:hidden}
+  .m{border-top:1px solid var(--a-line)}
+  .m:first-child{border-top:0}
+  .m-head{appearance:none;border:0;background:#fff;width:100%;font:inherit;color:inherit;cursor:pointer;text-align:left;
+    display:flex;align-items:center;gap:12px;padding:13px 16px;min-height:48px;transition:background .15s}
+  .m-head:hover{background:#f7f9fc}
+  .m-head:focus-visible{outline:2px solid var(--a-pri);outline-offset:-2px}
+  .m-ic{width:24px;height:24px;flex:none;color:var(--a-pri);display:grid;place-items:center}
+  .m-name{flex:1;min-width:0}
+  .m-name b{font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px}
+  .m-name small{display:block;font-size:12px;color:var(--a-mute);margin-top:2px}
+  .dots3{display:inline-flex}
+  .dots3 i{width:20px;height:20px;border-radius:50%;background:#fff;border:1.5px solid #e3eaf3;margin-left:-6px}
+  .dots3 i:first-child{margin-left:0}
+  .m-radio{width:20px;height:20px;border-radius:50%;border:2px solid #b8c4d2;flex:none;display:grid;place-items:center;transition:all .15s}
+  .m.on{background:var(--a-pri-soft)}
+  .m.on .m-head{background:transparent}
+  .m.on .m-radio{border-color:var(--a-pri)}
+  .m.on .m-radio::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--a-pri)}
+  .m-panel{padding:0 16px 16px 52px}
+  .m-panel[hidden]{display:none}
+  .fld{display:block;margin-bottom:10px}
+  .fld span{display:block;font-size:12px;color:var(--a-sub);margin-bottom:4px}
+  .fld input{width:100%;height:42px;border:1px solid #cdd6e1;border-radius:8px;padding:0 12px;font:inherit;font-size:14px;color:var(--a-ink);background:#fff}
+  .fld input:focus{outline:0;border-color:var(--a-pri);box-shadow:0 0 0 3px rgba(48,94,255,.15)}
+  .fld-row{display:flex;gap:10px}.fld-row .fld{flex:1}
+  .hint{font-size:12px;color:var(--a-mute);line-height:1.45;margin:2px 0 0}
+  .banks{display:flex;flex-wrap:wrap;gap:8px}
+  .bank{appearance:none;font:inherit;font-size:13px;cursor:pointer;border:1px solid #cdd6e1;background:#fff;color:var(--a-ink);border-radius:18px;padding:7px 12px;transition:all .15s}
+  .bank:hover{border-color:var(--a-pri)}
+  .bank:focus-visible{outline:2px solid var(--a-pri);outline-offset:1px}
+  .bank[aria-pressed="true"]{border-color:var(--a-pri);background:var(--a-pri);color:#fff}
+  .pay-note{font-size:11.5px;color:#8a5a00;background:#fff5e0;border-radius:8px;padding:7px 10px;margin:16px 0 0;line-height:1.4}
+  .pay .powered-by{margin:20px 0 6px;font-size:14px}
+  .pay-bar{position:sticky;bottom:-24px;background:#fff;border-top:1px solid var(--a-line);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 16px rgba(25,40,57,.06)}
+  .pay-bar small{display:block;font-size:11.5px;color:var(--a-mute)}
+  .pay-bar b{font-size:18px}
+  .pay-btn{appearance:none;border:0;cursor:pointer;font:inherit;font-size:15px;font-weight:600;border-radius:10px;padding:13px 20px;min-width:160px;
+    background:var(--a-pri);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .15s, opacity .15s}
+  .pay-btn:hover{background:#2148d6}
+  .pay-btn:focus-visible{outline:3px solid rgba(48,94,255,.35);outline-offset:2px}
+  .pay-btn[disabled]{background:#b9c6f5;cursor:not-allowed}
+  .spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .url .tag{flex:none;font-size:10px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:#8a5a00;background:#fff1d6;border-radius:4px;padding:1px 5px}
+  .url .tag[hidden]{display:none}
+
+  /* ===== Native VIDA confirmation ===== */
+  .app.native .wv-bar,.app.native .webview,.app.native .app-cta{display:none}
+  .native-view{flex:1;overflow-y:auto;padding:6px 16px 28px}
+  .native-view[hidden]{display:none}
+  .native-view .card{border-radius:16px}
+  .ok-banner{display:flex;align-items:center;gap:12px;background:#e9f8ef;border:1px solid #bfe8cf;border-radius:16px;padding:14px;margin-bottom:6px;animation:pageIn .35s ease-out}
+  .ok-ic{width:40px;height:40px;border-radius:50%;background:#1e9e5a;display:grid;place-items:center;flex:none;animation:popIn .45s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes popIn{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+  .ok-txt{flex:1;min-width:0}
+  .ok-txt b{display:block;font-size:15.5px}
+  .ok-txt small{font-size:13px;color:var(--ink-2)}
+  .ok-banner .pill{margin:0;align-self:flex-start}
+  .sec{font-size:15px;font-weight:500;color:var(--ink-3);margin:18px 0 8px}
+  .cert-top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:6px}
+  .cert-name{font-size:17px;font-weight:500}
+  .cert-top small{font-size:12.5px;color:var(--ink-3)}
+  .cert-act{display:flex;margin:-8px -8px 0 0}
+  .app .cert-act .icon-btn{color:var(--vida)}
+  .via{display:inline-flex;align-items:center;gap:6px}
+  .ok-text{color:#1e8e4e}
+  .yp{padding-bottom:0;overflow:hidden}
+  .yp-name{font-size:22px;font-weight:400;margin-bottom:10px}
+  .yp ul{margin:0 0 12px;padding:0;list-style:none}
+  .yp li{position:relative;padding-left:22px;font-size:14px;line-height:1.4;color:var(--ink-2);margin-bottom:5px}
+  .yp li::before{content:"";position:absolute;left:6px;top:8px;width:5px;height:5px;background:var(--ink-2)}
+  .yp-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:12px 0;font-size:14px}
+  .yp-foot .valid{font-size:14px}
+  .yp-active{margin:0 -18px;background:#e6f6ec;color:#1e8e4e;text-align:center;font-size:13px;padding:8px;display:flex;align-items:center;justify-content:center;gap:6px}
+  .yp-active i{width:6px;height:6px;border-radius:50%;background:#1e9e5a}
+  .btn-outline{appearance:none;width:100%;margin-top:16px;background:#fff;border:1.5px solid var(--ink);border-radius:10px;padding:13px;font:inherit;font-size:15px;font-weight:500;color:var(--ink);cursor:pointer}
+  .btn-outline:hover{background:#f6f7f8}
+  .btn-outline:focus-visible{outline:3px solid #ffb595;outline-offset:2px}
+
+  /* App ↔ external app transitions */
+  .app.to-bg{animation:toBg .38s cubic-bezier(.4,0,.2,1) forwards}
+  @keyframes toBg{to{transform:scale(.9) translateX(-6%);opacity:0;border-radius:42px}}
+  .app.back-in{animation:backIn .45s cubic-bezier(.2,.8,.2,1)}
+  @keyframes backIn{from{transform:scale(.9) translateX(-6%);opacity:0;border-radius:42px}to{transform:none;opacity:1}}
+
+  /* ===== Simulated Google Pay ===== */
+  .gp{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;background:#131314;color:#e3e3e3}
+  .gp[hidden]{display:none}
+  .gp.gp-in{animation:gpIn .42s cubic-bezier(.2,.8,.2,1)}
+  .gp.gp-out{animation:gpOut .32s ease-in forwards}
+  @keyframes gpIn{from{transform:translateX(18%) scale(.96);opacity:0}to{transform:none;opacity:1}}
+  @keyframes gpOut{to{transform:translateX(18%) scale(.96);opacity:0}}
+  .gp-status{height:50px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 8px 34px;font-size:15px;font-weight:600;color:#fff;transition:background .2s,color .2s}
+  .gp[data-view="pin"]{background:#fff}
+  .gp[data-view="pin"] .gp-status{color:#111}
+  .gp-view{flex:1;display:flex;flex-direction:column;min-height:0}
+  .gp-view[hidden]{display:none}
+  .gp-top{display:flex;justify-content:space-between;align-items:center;padding:10px 12px}
+  .gp-x{appearance:none;border:0;background:none;color:#e3e3e3;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+  .gp-x:hover{background:rgba(255,255,255,.08)}
+  .gp-x:focus-visible,.gp-pay:focus-visible{outline:2px solid #a8c7fa;outline-offset:2px}
+  .gp-sim{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#a8c7fa;border:1px solid #3c4a5f;border-radius:10px;padding:3px 8px;margin-right:6px}
+  .gp-payee{flex:1;display:flex;flex-direction:column;align-items:center;padding:24px 20px 0;text-align:center}
+  .gp-av{width:72px;height:72px;border-radius:50%;background:#2a1d72;display:grid;place-items:center;overflow:hidden;border:1px solid #3a3a3c}
+  .gp-av img{width:56px;height:auto}
+  .gp-to{font-size:19px;margin-top:18px;color:#e3e3e3}
+  .gp-upi{font-size:13.5px;color:#9aa0a6;margin-top:8px}
+  .gp-amt{display:flex;align-items:flex-start;gap:8px;margin-top:22px;font-size:64px;font-weight:300;line-height:1;color:#e3e3e3;letter-spacing:-1px}
+  .gp-amt .r{font-size:30px;margin-top:10px}
+  .gp-amt.sm{font-size:44px;margin-top:22px}.gp-amt.sm .r{font-size:22px;margin-top:6px}
+  .gp-note{margin-top:22px;background:#1f1f20;border-radius:12px;padding:9px 16px;font-size:14px;color:#c4c7c5}
+  .gp-sheet{background:#2b2b2c;border-radius:26px 26px 0 0;padding:22px 20px 18px}
+  .gp-ch{font-size:16px;color:#e3e3e3;margin-bottom:16px}
+  .gp-acct{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+  .gp-bank{width:52px;height:34px;border-radius:6px;background:#fff;display:grid;place-items:center;flex:none}
+  .gp-acct b{display:block;font-weight:400;font-size:15.5px;color:#e3e3e3}
+  .gp-acct small{font-size:13px;color:#9aa0a6}
+  .gp-pay{appearance:none;border:0;width:100%;height:50px;border-radius:25px;background:#a8c7fa;color:#062e6f;font:inherit;font-size:16px;font-weight:500;cursor:pointer;transition:filter .15s}
+  .gp-pay:hover{filter:brightness(1.06)}
+  .gp-foot{text-align:center;font-size:11.5px;color:#9aa0a6;margin-top:14px}
+  .gp-center{align-items:center;justify-content:center;text-align:center;padding:0 32px}
+  .gp-center p{font-size:19px;margin:20px 0 6px;color:#e3e3e3}
+  .gp-center small{font-size:13px;color:#9aa0a6;line-height:1.45}
+  .gp-spin{width:52px;height:52px;border-radius:50%;border:4px solid #3a3a3c;border-top-color:#a8c7fa;animation:sp .9s linear infinite}
+  .gp-check{width:96px;height:96px;border-radius:50%;background:#1e8e3e;display:grid;place-items:center;animation:popIn .5s cubic-bezier(.2,1.4,.4,1)}
+  .gp-check.fail{background:#d93025}
+  /* UPI PIN (bank page within GPay) */
+  .pin{color:#1d2b4f;background:#fff}
+  .pin-head{display:flex;justify-content:space-between;align-items:center;padding:10px 18px 12px;font-size:14px}
+  .pin-head span{font-size:12px;font-weight:700;color:#3d4f7a;letter-spacing:.5px}
+  .pin-bar{display:flex;justify-content:space-between;background:#1f3a8a;color:#fff;font-size:14px;padding:11px 18px}
+  .pin-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px}
+  .pin-lbl{font-size:13px;font-weight:600;color:#4a5578;letter-spacing:.3px;display:flex;align-items:center;gap:14px}
+  .pin-show{appearance:none;border:0;background:none;font:inherit;font-size:12px;font-weight:700;color:#1f3a8a;cursor:pointer;padding:4px 6px;border-radius:4px}
+  .pin-show:focus-visible{outline:2px solid #1f3a8a}
+  .pin-dots{display:flex;gap:22px;margin:26px 0 18px;min-height:30px;align-items:center}
+  .pin-dots i{width:20px;height:20px;border-radius:50%;border:2px solid #1d2b4f;font-style:normal;font-size:22px;font-weight:600;display:grid;place-items:center;transition:background .12s}
+  .pin-dots i.f{background:#1d2b4f}
+  .pin-dots.reveal i.f{background:none;border-color:transparent}
+  .pin-dots.shake{animation:shake .4s}
+  @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  .pin-msg{font-size:12.5px;color:#6b7591;text-align:center;line-height:1.4;min-height:36px}
+  .pin-msg.err{color:#c5221f}
+  .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);background:#eef1f7;padding:8px 10px 6px;gap:2px}
+  .pin-pad button{appearance:none;border:0;background:transparent;height:54px;font:inherit;font-size:26px;color:#1d2b4f;cursor:pointer;border-radius:10px;display:grid;place-items:center}
+  .pin-pad button:hover{background:#e1e6f0}
+  .pin-pad button:focus-visible{outline:2px solid #1f3a8a;outline-offset:-2px}
+  .pin-pad .ok{background:#1f3a8a;color:#fff;width:58px;height:58px;border-radius:50%;justify-self:center}
+  .pin-pad .ok:hover{background:#2a4aa8}
+  .pin-cancel{appearance:none;border:0;background:#eef1f7;font:inherit;font-size:14px;color:#3d4f7a;padding:8px 0 14px;cursor:pointer}
+  .pin-cancel:hover{color:#1d2b4f;text-decoration:underline}
+
+  /* End-of-prototype sheet */
+  .sheet-bg{position:absolute;inset:0;z-index:6;background:rgba(18,19,20,.45);opacity:0;transition:opacity .2s;display:flex;align-items:flex-end}
+  .sheet-bg.show{opacity:1}
+  .sheet-bg[hidden]{display:none}
+  .sheet{width:100%;background:#fff;border-radius:20px 20px 0 0;padding:10px 20px 26px;transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+  .sheet-bg.show .sheet{transform:none}
+  .sheet .grab{width:38px;height:4px;border-radius:2px;background:#d6d9dd;margin:0 auto 16px}
+  .sheet h2{margin:0 0 6px;font-size:19px}
+  .sheet p{margin:0 0 18px;font-size:14px;line-height:1.5;color:var(--ink-2)}
+  .sheet .actions{display:flex;gap:10px}
+  .sheet .actions .btn{flex:1;min-width:0;padding:12px 8px;white-space:nowrap;font-size:14px}
+
+  /* ---------- Mobile: drop the device frame ---------- */
+  @media (max-width:480px){
+    .app-status{display:none}
+    .gp-status{display:none}
+    .app-head{padding-top:calc(6px + env(safe-area-inset-top))}
+    .app-home{display:none}
+    .app-cta{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+    body{display:block;background:var(--wa-bg)}
+    .phone{width:100%;height:100vh;height:100dvh;border-radius:0;padding:0;box-shadow:none;background:none}
+    .screen{border-radius:0}
+    .island,.home-ind,.statusbar{display:none}
+    header.chat-head{padding-top:calc(6px + env(safe-area-inset-top))}
+    footer.composer{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+  }
+  @media (max-height:700px) and (min-width:481px){
+    .phone{height:calc(100vh - 24px)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+  }
+  /* Prototype label shown outside the phone */
+  body{flex-direction:column;gap:12px}
+  .proto-banner{font-size:12.5px;color:#3b4a54;background:#fff;border:1px solid #d7dde1;border-radius:999px;padding:6px 14px;text-align:center;max-width:calc(100% - 32px)}
+  .proto-banner b{color:#111b21}
+  .phone{height:min(844px, calc(100vh - 92px))}
+  @media (max-width:480px){
+    body{display:flex;flex-direction:column;gap:0;height:100vh;height:100dvh}
+    .proto-banner{border-radius:0;border:0;border-bottom:1px solid #d7dde1;max-width:none;width:100%;padding:5px 12px;font-size:11.5px;flex:none}
+    .phone{height:auto;flex:1;min-height:0}
+  }
+</style>
+</head>
+<body>
+
+
+<div class="proto-banner" role="note"><b>Design prototype</b> &middot; not a live product &middot; no real payments &middot; Demo UPI PIN: <b>1234</b></div>
+
+<div class="phone" role="application" aria-label="WhatsApp conversation mockup with Hero VIDA">
+  <div class="screen">
+    <div class="island" aria-hidden="true"></div>
+
+    <!-- iOS-style status bar -->
+    <div class="statusbar" aria-hidden="true">
+      <span>9:41</span>
+      <span class="icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="#fff"><path d="M8 2.5c2.3 0 4.4.9 6 2.4l1.2-1.3A10.2 10.2 0 0 0 8 .7 10.2 10.2 0 0 0 .8 3.6L2 4.9a8.4 8.4 0 0 1 6-2.4zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.2-1.3A6.6 6.6 0 0 0 8 4.3a6.6 6.6 0 0 0-4.6 1.8l1.2 1.3c.9-.8 2.1-1.3 3.4-1.3zm0 3.5c-.5 0-1 .2-1.3.5L8 11.5l1.3-1.4c-.3-.3-.8-.5-1.3-.5z"/></svg>
+        <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#fff" opacity=".5"/><rect x="2" y="2" width="17" height="9" rx="2" fill="#fff"/><path d="M24.5 4.5v4c.8-.3 1.5-1.1 1.5-2s-.7-1.7-1.5-2z" fill="#fff" opacity=".5"/></svg>
+      </span>
+    </div>
+
+    <!-- Chat header -->
+    <header class="chat-head">
+      <button class="icon-btn" type="button" data-proto="Back to chats" aria-label="Back">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg>
+      </button>
+      <div class="avatar" aria-hidden="true">VIDA</div>
+      <div class="who">
+        <div class="name">
+          Hero VIDA
+          <svg width="16" height="16" viewBox="0 0 24 24" role="img" aria-label="Verified business"><path fill="#25d366" d="M12 1.5l2.5 1.8 3.1-.1 1 2.9 2.5 1.8-.9 3 .9 3-2.5 1.8-1 2.9-3.1-.1L12 22.5l-2.5-1.8-3.1.1-1-2.9-2.5-1.8.9-3-.9-3 2.5-1.8 1-2.9 3.1.1z"/><path fill="#fff" d="M10.6 15.6l-3.2-3.2 1.4-1.4 1.8 1.8 4.6-4.6 1.4 1.4z"/></svg>
+        </div>
+        <div class="sub">Business account</div>
+      </div>
+      <button class="icon-btn" type="button" data-proto="Voice call" aria-label="Voice call">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg>
+      </button>
+      <button class="icon-btn" type="button" data-proto="Chat menu" aria-label="More options">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+      </button>
+    </header>
+
+    <!-- Conversation -->
+    <main class="chat" id="chat" aria-live="polite" aria-label="Messages">
+      <div class="sys"><span>Today</span></div>
+      <div class="sys note"><span>🔒 Messages are end-to-end encrypted. This business may use other companies to manage this chat.</span></div>
+      <div class="sys"><span>Hero VIDA is a verified business account</span></div>
+
+      <!-- Business template message -->
+      <div class="row in first">
+        <div class="bubble tpl">
+          <div class="media" role="img" aria-label="Welcome to the VIDA family">
+            <svg class="confetti" viewBox="0 0 300 132" preserveAspectRatio="none" aria-hidden="true">
+              <g opacity=".85">
+                <rect x="22" y="18" width="6" height="3" rx="1" fill="#ffb18a" transform="rotate(20 25 19)"/>
+                <rect x="70" y="30" width="5" height="3" rx="1" fill="#fff" opacity=".7" transform="rotate(-30 72 31)"/>
+                <circle cx="120" cy="16" r="2.2" fill="#ff8a57"/>
+                <rect x="160" y="40" width="6" height="3" rx="1" fill="#ffd2bd" transform="rotate(45 163 41)"/>
+                <circle cx="210" cy="26" r="2" fill="#fff" opacity=".6"/>
+                <rect x="48" y="58" width="5" height="3" rx="1" fill="#ff8a57" transform="rotate(-15 50 59)"/>
+                <circle cx="190" cy="64" r="1.8" fill="#ffb18a"/>
+              </g>
+            </svg>
+            <svg class="bolt" width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="rgba(255,255,255,.14)"/><path d="M13.2 4.5 7.5 13h4l-1 6.5 6-8.8h-4.1z" fill="#ff5a1f"/></svg>
+            <div class="kicker">Hero VIDA</div>
+            <div class="headline">Welcome to the<br>VIDA family</div>
+          </div>
+          <div class="body">
+            <p>Hi Aarav, congratulations on your new <strong>VIDA</strong>! 🎉</p>
+            <p>Want extra peace of mind? Extend your battery's protection beyond the standard warranty.</p>
+          </div>
+          <div class="footer">
+            Hero VIDA · Customer Care
+            <span class="meta">10:42 AM</span>
+          </div>
+          <div class="tpl-btns">
+            <button class="tpl-btn primary" type="button" data-cta="warranty-button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14 3v2h3.6l-9.8 9.8 1.4 1.4L19 6.4V10h2V3zM19 19H5V5h7V3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg>
+              Explore Battery Warranty
+            </button>
+            <button class="tpl-btn" type="button" data-reply="Tell me more">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+              Tell me more
+            </button>
+            <button class="tpl-btn" type="button" data-reply="Not now">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+              Not now
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Composer -->
+    <footer class="composer">
+      <form class="field" id="composer" autocomplete="off">
+        <button class="icon-btn" type="button" data-proto="Emoji" aria-label="Emoji">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm-3.5-9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm7 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM12 17.5c2.3 0 4.3-1.5 5-3.5H7c.7 2 2.7 3.5 5 3.5z"/></svg>
+        </button>
+        <label for="msg" class="sr-only">Type a message</label>
+        <textarea id="msg" rows="1" placeholder="Message"></textarea>
+        <button class="icon-btn" type="button" data-proto="Attach" aria-label="Attach">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="transform:rotate(-45deg)"><path d="M16.5 6v11.5a4 4 0 0 1-8 0V5a2.5 2.5 0 0 1 5 0v10.5a1 1 0 0 1-2 0V6H10v9.5a2.5 2.5 0 0 0 5 0V5a4 4 0 0 0-8 0v12.5a5.5 5.5 0 0 0 11 0V6z"/></svg>
+        </button>
+        <button class="icon-btn" type="button" data-proto="Camera" aria-label="Camera">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm8-3h-3.2L15 4H9L7.2 6H4a2 2 0 0 0-2 2v11c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8 13a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/></svg>
+        </button>
+      </form>
+      <button class="send" id="sendBtn" type="button" aria-label="Send message">
+        <svg class="i-mic" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5.3-3a5.3 5.3 0 0 1-10.6 0H5a7 7 0 0 0 6 6.9V21h2v-3.1a7 7 0 0 0 6-6.9z"/></svg>
+        <svg class="i-send" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg>
+      </button>
+    </footer>
+
+    <div class="home-ind" aria-hidden="true"></div>
+
+    <!-- ===================== VIDA APP (overlay) ===================== -->
+    <section class="app is-splash" id="app" hidden aria-label="Hero VIDA app">
+      <div class="app-status">
+        <span aria-hidden="true">9:41</span>
+        <span class="icons" aria-hidden="true">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.5c2.3 0 4.4.9 6 2.4l1.2-1.3A10.2 10.2 0 0 0 8 .7 10.2 10.2 0 0 0 .8 3.6L2 4.9a8.4 8.4 0 0 1 6-2.4zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.2-1.3A6.6 6.6 0 0 0 8 4.3a6.6 6.6 0 0 0-4.6 1.8l1.2 1.3c.9-.8 2.1-1.3 3.4-1.3zm0 3.5c-.5 0-1 .2-1.3.5L8 11.5l1.3-1.4c-.3-.3-.8-.5-1.3-.5z"/></svg>
+          <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="17" height="9" rx="2" fill="currentColor"/><path d="M24.5 4.5v4c.8-.3 1.5-1.1 1.5-2s-.7-1.7-1.5-2z" fill="currentColor" opacity=".5"/></svg>
+        </span>
+      </div>
+
+      <!-- Splash -->
+      <div class="splash" id="splash" role="img" aria-label="Hero VIDA is loading">
+        <div class="kick">Hero</div>
+        <div class="vida-mark">VID<i>A</i></div>
+        <div class="loader" aria-hidden="true"></div>
+        <div class="powered">Electric mobility by Hero</div>
+      </div>
+
+      <!-- App header -->
+      <header class="app-head">
+        <button class="icon-btn" type="button" id="appBack" aria-label="Back">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg>
+        </button>
+        <h1 id="appTitle">Extended Warranty</h1>
+        <span class="host-mark" aria-label="Hero VIDA app">VID<i>A</i></span>
+      </header>
+
+      <!-- In-app browser toolbar (VIDA's embedded webview showing ACKO's mWeb) -->
+      <div class="wv-bar" role="toolbar" aria-label="In-app browser">
+        <button class="wv-btn" type="button" id="wvBack" aria-label="Back to previous page">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4-4.6-4.6z"/></svg>
+        </button>
+        <div class="url" id="urlBar" title="https://www.acko.com/ewplans">
+          <svg class="lock" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Secure connection (HTTPS)"><path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zM9 6a3 3 0 0 1 6 0v2H9zm3 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>
+          <span class="addr"><span class="dom">www.acko.com</span><span class="path" id="urlPath">/ewplans</span></span>
+          <span class="tag" id="urlTag" title="Placeholder URL for this prototype" hidden>Sample</span>
+        </div>
+        <button class="wv-btn" type="button" id="wvReload" aria-label="Reload page">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.7 6.3A8 8 0 1 0 19.7 14h-2.1a6 6 0 1 1-1.4-6.2L13 11h7V4z"/></svg>
+        </button>
+        <div class="wv-progress" id="wvProgress" aria-hidden="true"></div>
+      </div>
+
+      <!-- Embedded mWeb content (ACKO plans, rendered locally) -->
+      <div class="webview" id="webview">
+        <section class="page" id="pg-plans" aria-labelledby="appTitle">
+          <p class="ew-intro">Extend protection for your VIDA's battery beyond the standard warranty. Pick a plan that suits you.</p>
+          <h2 class="ew-label">Plans</h2>
+          <div role="radiogroup" aria-label="Extended warranty plans" id="planList"></div>
+          <div class="powered-by">Powered by <img src="data:image/png;base64,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" alt="ACKO" width="81" height="20"></div>
+        </section>
+
+        <section class="page pay" id="pg-pay" hidden aria-label="ACKO payment">
+          <div class="pay-hero">
+            <img class="logo" src="data:image/png;base64,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" alt="ACKO" width="98" height="24">
+            <div class="ps">
+              <button class="ps-title" type="button" id="psOpen" aria-label="Open policy summary details">
+                Policy summary
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.6 16.6 13.2 12 8.6 7.4 10 6l6 6-6 6z"/></svg>
+              </button>
+              <div class="ps-row">
+                <div><b id="psName"></b><small id="psDesc"></small></div>
+                <span class="amt" id="psPrice"></span>
+              </div>
+              <div class="ps-dash" aria-hidden="true"></div>
+              <div class="ps-kv"><span>Plan price</span><span id="psPrice2"></span></div>
+              <div class="ps-kv"><span>GST (18%)</span><span id="psGst"></span></div>
+              <div class="ps-kv tot"><span>Amount payable</span><span id="psTotal"></span></div>
+            </div>
+          </div>
+
+          <div class="pay-body">
+            <h2>Payment options</h2>
+            <p class="pay-lbl">All payment options</p>
+            <div class="methods" role="radiogroup" aria-label="Payment method" id="methods">
+              <div class="m" data-m="gpay">
+                <button class="m-head" type="button" role="radio" aria-checked="false">
+                  <span class="m-ic"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" rx="6" fill="#fff" stroke="#dadce0"/><circle cx="9" cy="9" r="2.6" fill="#4285f4"/><circle cx="15" cy="9" r="2.6" fill="#ea4335"/><circle cx="9" cy="15" r="2.6" fill="#34a853"/><circle cx="15" cy="15" r="2.6" fill="#fbbc04"/></svg></span>
+                  <span class="m-name"><b>Google Pay</b><small>Pay using the Google Pay app</small></span>
+                  <span class="m-radio" aria-hidden="true"></span>
+                </button>
+                <div class="m-panel" hidden>
+                  <p class="hint">You'll be taken to the Google Pay app to approve this payment, then brought back here.</p>
+                </div>
+              </div>
+              <div class="m" data-m="card">
+                <button class="m-head" type="button" role="radio" aria-checked="false">
+                  <span class="m-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg></span>
+                  <span class="m-name"><b>Cards <span class="dots3" aria-hidden="true"><i></i><i></i><i></i></span></b><small>Credit or debit card</small></span>
+                  <span class="m-radio" aria-hidden="true"></span>
+                </button>
+                <div class="m-panel" hidden>
+                  <label class="fld"><span>Card number</span><input type="text" inputmode="numeric" placeholder="0000 0000 0000 0000" autocomplete="off"></label>
+                  <div class="fld-row">
+                    <label class="fld"><span>Expiry</span><input type="text" inputmode="numeric" placeholder="MM / YY" autocomplete="off"></label>
+                    <label class="fld"><span>CVV</span><input type="password" inputmode="numeric" placeholder="•••" maxlength="4" autocomplete="off"></label>
+                  </div>
+                </div>
+              </div>
+              <div class="m" data-m="nb">
+                <button class="m-head" type="button" role="radio" aria-checked="false">
+                  <span class="m-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 9.5 12 4l9 5.5z"/><path d="M5 10v7M9.5 10v7M14.5 10v7M19 10v7M3 20h18"/></svg></span>
+                  <span class="m-name"><b>Netbanking <span class="dots3" aria-hidden="true"><i></i><i></i><i></i></span></b><small>All major banks</small></span>
+                  <span class="m-radio" aria-hidden="true"></span>
+                </button>
+                <div class="m-panel" hidden>
+                  <div class="banks" role="group" aria-label="Choose your bank">
+                    <button class="bank" type="button" aria-pressed="false">SBI</button>
+                    <button class="bank" type="button" aria-pressed="false">HDFC Bank</button>
+                    <button class="bank" type="button" aria-pressed="false">ICICI Bank</button>
+                    <button class="bank" type="button" aria-pressed="false">Axis Bank</button>
+                    <button class="bank" type="button" aria-pressed="false">Other banks</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="powered-by">Secured by <img src="data:image/png;base64,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" alt="ACKO" width="73" height="18" style="height:18px"></div>
+          </div>
+
+          <div class="pay-bar">
+            <div><small>Amount payable</small><b id="payAmt"></b></div>
+            <button class="pay-btn" type="button" id="payNow" disabled>Select a method</button>
+          </div>
+        </section>
+
+        <section class="page" id="pg-review" hidden aria-label="Review your plan">
+          <h2 class="pg-title">Review your plan</h2>
+          <p class="pg-sub">Check the details below before you continue.</p>
+
+          <div class="card">
+            <h3>Selected plan</h3>
+            <div class="sum-top">
+              <div>
+                <div class="sum-name" id="rvName"></div>
+                <span class="pill">Sample</span>
+              </div>
+              <button class="link-btn" type="button" id="rvChange">Change</button>
+            </div>
+            <div class="valid" style="margin-top:12px">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#121314"/><path d="M12 6.5V12h4.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+              <span id="rvValid"></span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Vehicle details <span class="pill" style="margin:0 0 0 6px">Sample</span></h3>
+            <div class="kv"><span>Owner</span><span>Aarav</span></div>
+            <div class="kv"><span>Vehicle</span><span>Hero VIDA scooter</span></div>
+            <div class="kv"><span>Registration no.</span><span>MH 12 XX 0000</span></div>
+            <div class="kv"><span>Battery serial no.</span><span>Fetched from your VIDA app</span></div>
+          </div>
+
+          <div class="card">
+            <h3>Price details</h3>
+            <div class="kv"><span>Plan price</span><span id="rvPrice"></span></div>
+            <div class="kv"><span>GST (18%)</span><span id="rvGst"></span></div>
+            <div class="kv total"><span>To pay</span><span id="rvTotal"></span></div>
+          </div>
+
+          <p class="fine">By continuing, you agree to ACKO's plan terms and conditions.</p>
+        </section>
+      </div>
+
+      <!-- Native VIDA purchase confirmation (no browser toolbar) -->
+      <div class="native-view" id="pg-confirm" hidden>
+        <div class="ok-banner">
+          <div class="ok-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+          <div class="ok-txt"><b>Purchase successful</b><small>Your battery extended warranty is now active.</small></div>
+        </div>
+
+        <h3 class="sec">Certificate details</h3>
+        <div class="card cert">
+          <div class="cert-top">
+            <div><div class="cert-name">Battery EW &middot; <span id="cfName"></span></div><small id="cfMember"></small></div>
+            <div class="cert-act">
+              <button class="icon-btn" type="button" data-app-proto="Download certificate" aria-label="Download certificate"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M11 4h2v8.2l3.3-3.3 1.4 1.4L12 16l-5.7-5.7 1.4-1.4 3.3 3.3zM5 18h14v2H5z"/></svg></button>
+              <button class="icon-btn" type="button" data-app-proto="Share certificate" aria-label="Share certificate"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16c-.8 0-1.5.3-2 .8l-7.1-4.1a3 3 0 0 0 0-1.4l7-4.1A3 3 0 1 0 15 5c0 .2 0 .5.1.7L8 9.8a3 3 0 1 0 0 4.4l7.1 4.2-.1.6a3 3 0 1 0 3-3z"/></svg></button>
+            </div>
+          </div>
+          <div class="kv"><span>Certificate number</span><span id="cfCert"></span></div>
+          <div class="kv"><span>Owner</span><span>Aarav</span></div>
+          <div class="kv"><span>Mobile number</span><span>+91 98XXX XXX00</span></div>
+          <div class="kv"><span>VIN</span><span>MBLHA10A1EHE00091</span></div>
+          <div class="kv"><span>Expiry date</span><span id="cfExpiry"></span></div>
+        </div>
+
+        <h3 class="sec">Payment</h3>
+        <div class="card">
+          <div class="kv"><span>Amount paid</span><span id="cfPaid"></span></div>
+          <div class="kv"><span>Paid via</span><span class="via"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="16" height="16" rx="6" fill="#fff" stroke="#dadce0"/><circle cx="9" cy="9" r="2.6" fill="#4285f4"/><circle cx="15" cy="9" r="2.6" fill="#ea4335"/><circle cx="9" cy="15" r="2.6" fill="#34a853"/><circle cx="15" cy="15" r="2.6" fill="#fbbc04"/></svg>Google Pay</span></div>
+          <div class="kv"><span>Transaction ID</span><span id="cfTxn"></span></div>
+          <div class="kv"><span>Status</span><span class="ok-text">Successful</span></div>
+        </div>
+
+        <h3 class="sec">Your plan</h3>
+        <div class="card yp">
+          <div class="yp-name" id="cfPlan"></div>
+          <ul id="cfBenefits"></ul>
+          <div class="yp-foot">
+            <span class="valid"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#121314"/><path d="M12 6.5V12h4.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg><span>Expires on <span id="cfExp2"></span></span></span>
+            <b id="cfPrice"></b>
+          </div>
+          <div class="yp-active"><i></i>Active</div>
+        </div>
+        <button class="btn-outline" type="button" id="cfDone">Back to WhatsApp</button>
+      </div>
+
+      <div class="app-cta" id="appCta" hidden>
+        <div class="amt"><small>To pay</small><b id="ctaAmt"></b></div>
+        <button class="btn primary" type="button" id="toPay">Proceed to pay</button>
+      </div>
+      <div class="app-home" aria-hidden="true"></div>
+
+      <!-- End-of-prototype sheet -->
+      <div class="sheet-bg" id="sheet" hidden>
+        <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+          <div class="grab" aria-hidden="true"></div>
+          <h2 id="sheetTitle">Payment method unavailable</h2>
+          <p id="sheetMsg">This payment method isn't available right now. You haven't been charged.</p>
+          <div class="actions">
+            <button class="btn ghost" type="button" id="sheetPlans">Back to plans</button>
+            <button class="btn primary" type="button" id="sheetWA">Return to WhatsApp</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Simulated Google Pay app (external app) ============ -->
+    <section class="gp" id="gpay" hidden aria-label="Google Pay" data-view="pay">
+      <div class="gp-status" aria-hidden="true"><span>9:41</span><span>5G&nbsp;&#9646;&#9646;&#9646;</span></div>
+
+      <!-- Pay confirm -->
+      <div class="gp-view" data-v="pay">
+        <div class="gp-top">
+          <button class="gp-x" type="button" id="gpClose" aria-label="Cancel payment"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button>
+          <span class="gp-sim">Prototype</span>
+        </div>
+        <div class="gp-payee">
+          <div class="gp-av"><img src="" id="gpAckoLogo" alt=""></div>
+          <div class="gp-to">Paying ACKO</div>
+          <div class="gp-upi">Extended warranty payment</div>
+          <div class="gp-amt"><span class="r">&#8377;</span><span id="gpAmt"></span></div>
+          <div class="gp-note" id="gpNote"></div>
+        </div>
+        <div class="gp-sheet">
+          <div class="gp-ch">Choose account to pay with</div>
+          <div class="gp-acct">
+            <span class="gp-bank" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="1.8" stroke-linejoin="round"><path d="M3 9.5 12 4l9 5.5z"/><path d="M5 10v7M9.5 10v7M14.5 10v7M19 10v7M3 20h18"/></svg></span>
+            <span><b>Demo Bank &bull;&bull;&bull;&bull;0000</b><small>Savings account</small></span>
+          </div>
+          <button class="gp-pay" type="button" id="gpPay"></button>
+          <div class="gp-foot">Powered by UPI</div>
+        </div>
+      </div>
+
+      <!-- UPI PIN -->
+      <div class="gp-view pin" data-v="pin" hidden>
+        <div class="pin-head"><b>DEMO BANK</b><span>UPI</span></div>
+        <div class="pin-bar"><span>ACKO</span><span id="pinAmt"></span></div>
+        <div class="pin-body">
+          <div class="pin-lbl">ENTER 4-DIGIT UPI PIN
+            <button type="button" class="pin-show" id="pinShow" aria-pressed="false">SHOW</button></div>
+          <div class="pin-dots" id="pinDots" aria-live="polite"><i></i><i></i><i></i><i></i></div>
+          <div class="pin-msg" id="pinMsg">Demo PIN: <b>1234</b></div>
+        </div>
+        <div class="pin-pad" id="pinPad">
+          <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
+          <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+          <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
+          <button type="button" data-k="del" aria-label="Delete"><svg width="26" height="20" viewBox="0 0 26 20" fill="currentColor"><path d="M8 0h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8L0 10zm4.6 5.4 4.6 4.6-4.6 4.6 1.4 1.4 4.6-4.6 4.6 4.6 1.4-1.4L20 10l4.6-4.6-1.4-1.4L18.6 8.6 14 4z"/></svg></button>
+          <button type="button" data-k="0">0</button>
+          <button type="button" data-k="ok" class="ok" aria-label="Submit PIN"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+        </div>
+        <button type="button" class="pin-cancel" id="pinCancel">Cancel</button>
+      </div>
+
+      <!-- Processing / success / failure -->
+      <div class="gp-view gp-center" data-v="proc" hidden>
+        <div class="gp-spin" aria-hidden="true"></div><p>Processing payment&hellip;</p><small>Please don't close the app</small>
+      </div>
+      <div class="gp-view gp-center" data-v="done" hidden>
+        <div class="gp-check" aria-hidden="true"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <div class="gp-amt sm"><span class="r">&#8377;</span><span id="gpDoneAmt"></span></div>
+        <p>Paid to ACKO</p><small>Returning to Hero VIDA&hellip;</small>
+      </div>
+      <div class="gp-view gp-center" data-v="fail" hidden>
+        <div class="gp-check fail" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></svg></div>
+        <p>Payment failed</p><small>Too many incorrect PIN attempts. You haven't been charged.</small>
+        <button class="gp-pay" type="button" id="gpFailBack" style="margin-top:24px;width:auto;padding:0 28px">Back to Hero VIDA</button>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const chat = document.getElementById('chat');
+  const input = document.getElementById('msg');
+  const form = document.getElementById('composer');
+  const sendBtn = document.getElementById('sendBtn');
+  const toastEl = document.getElementById('toast');
+
+  // Scripted, non-pushy business replies (no pricing, durations or coverage claims).
+  const REPLIES = {
+    'tell me more':
+      "Happy to help! 😊 A battery extended warranty is an optional plan that can extend protection for your VIDA's battery beyond the standard warranty period.\n\nYou can check plan options, eligibility and full terms using the button above whenever it suits you. There's no need to decide right away.",
+    'not now':
+      "No problem at all! You can explore it anytime using the button above.\n\nEnjoy your rides, and reach out here if you need anything. ⚡",
+    'default':
+      "Thanks for your message! A Hero VIDA team member will get back to you shortly.\n\nIn the meantime, you can find battery warranty details using the button above."
+  };
+
+  let lastSender = 'in';
+  let busy = false;
+
+  const now = () => new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+  const escapeHTML = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const scrollDown = () => requestAnimationFrame(() => { chat.scrollTop = chat.scrollHeight; });
+
+  const tickSVG = '<svg class="ticks" width="16" height="11" viewBox="0 0 16 11" fill="currentColor" aria-label="Sent"><path d="M11.1.7 10 .0 4.5 7.1 2 4.7l-1 1 3.6 3.5zM15.1.7 14 0 8.5 7.1l-.9-.9-1 1.1 2 1.9z"/></svg>';
+
+  function addMessage(text, who){
+    const first = lastSender !== who;
+    lastSender = who;
+    const row = document.createElement('div');
+    row.className = 'row ' + who + (first ? ' first' : '') + ' pop';
+    const html = escapeHTML(text).replace(/\n/g, '<br>');
+    row.innerHTML =
+      '<div class="bubble">' + html +
+      '<span class="meta">' + now() + (who === 'out' ? ' ' + tickSVG : '') + '</span></div>';
+    chat.appendChild(row);
+    scrollDown();
+    return row;
+  }
+
+  function showTyping(){
+    const row = document.createElement('div');
+    row.className = 'row in typing pop' + (lastSender !== 'in' ? ' first' : '');
+    row.setAttribute('aria-label','Hero VIDA is typing');
+    row.innerHTML = '<div class="bubble"><div class="dots"><i></i><i></i><i></i></div></div>';
+    chat.appendChild(row);
+    scrollDown();
+    return row;
+  }
+
+  function customerSays(text){
+    text = text.trim();
+    if(!text || busy) return;
+    busy = true;
+    const row = addMessage(text, 'out');
+    const ticks = row.querySelector('.ticks');
+    const key = text.toLowerCase();
+    const reply = REPLIES[key] || REPLIES['default'];
+
+    setTimeout(() => { ticks && ticks.classList.add('read'); ticks && ticks.setAttribute('aria-label','Read'); }, 700);
+    setTimeout(() => {
+      const t = showTyping();
+      setTimeout(() => { t.remove(); lastSender = 'out'; addMessage(reply, 'in'); busy = false; }, 1400);
+    }, 1000);
+  }
+
+  // Quick-reply buttons (one-time use, like a template reply)
+  document.querySelectorAll('[data-reply]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(busy) return;
+      document.querySelectorAll('[data-reply]').forEach(b => b.disabled = true);
+      customerSays(btn.dataset.reply);
+    });
+  });
+
+  // Warranty CTA → opens the VIDA app (splash → in-app ACKO plans mWeb).
+  document.querySelectorAll('[data-cta]').forEach(el => {
+    el.addEventListener('click', e => { e.preventDefault(); openApp(el); });
+  });
+
+  /* ================= VIDA app flow ================= */
+  // Sample data mirroring the reference screenshot. NOT official ACKO / Hero VIDA terms.
+  const PLANS = [
+    { id:'1', name:'EW Plan 1', validity:'Valid for 1 year', years:1, price:1000, benefits:[
+      'Battery repair support for covered defects after the standard warranty ends.',
+      'Battery replacement support if a covered defect can’t be repaired.',
+      'Service at authorised Hero VIDA service centres.',
+      'Raise and track claims from the VIDA app.'
+    ]},
+    { id:'2', name:'EW Plan 2', validity:'Valid for 2 years', years:2, price:2500, benefits:[
+      'Battery repair support for covered defects after the standard warranty ends.',
+      'Battery replacement support if a covered defect can’t be repaired.',
+      'Service at authorised Hero VIDA service centres.',
+      'Raise and track claims from the VIDA app.',
+      'Battery health check during plan validity.',
+      'Priority assistance from the claims team.'
+    ]}
+  ];
+  const inr = n => '₹ ' + n.toLocaleString('en-IN');
+  const GST_RATE = 0.18;                                   // GST on extended warranty (18%)
+  const gstOf = p => Math.round(p.price * GST_RATE);
+  const totalOf = p => p.price + gstOf(p);
+
+  const app = document.getElementById('app');
+  const splash = document.getElementById('splash');
+  const webview = document.getElementById('webview');
+  const pgPlans = document.getElementById('pg-plans');
+  const pgReview = document.getElementById('pg-review');
+  const pgPay = document.getElementById('pg-pay');
+  const appCta = document.getElementById('appCta');
+  const progress = document.getElementById('wvProgress');
+  const sheet = document.getElementById('sheet');
+  const planList = document.getElementById('planList');
+  let selected = null, page = 'plans', launcher = null, splashTimer = null, method = null, paying = false;
+
+  const clockSVG = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#121314"/><path d="M12 6.5V12h4.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+  planList.innerHTML = PLANS.map(p => `
+    <article class="plan" data-plan="${p.id}">
+      <input type="radio" name="ewplan" id="plan${p.id}" value="${p.id}" class="sr-only">
+      <label for="plan${p.id}" class="plan-head">
+        <span><span class="plan-name">${p.name}</span><br><span class="pill">Sample</span><span class="sel-tag">Selected</span></span>
+        <span class="radio" aria-hidden="true"></span>
+      </label>
+      <ul>${p.benefits.map(b => `<li>${b}</li>`).join('')}</ul>
+      <div class="valid">${clockSVG}${p.validity}</div>
+      <div class="plan-foot">
+        <span class="price">${inr(p.price)}</span>
+        <button class="buy" type="button" data-buy="${p.id}" aria-label="Buy ${p.name}, ${inr(p.price)}">Buy plan</button>
+      </div>
+    </article>`).join('');
+
+  function selectPlan(id){
+    selected = PLANS.find(p => p.id === id);
+    planList.querySelectorAll('.plan').forEach(c => {
+      const on = c.dataset.plan === id;
+      c.classList.toggle('selected', on);
+      c.querySelector('input').checked = on;
+    });
+  }
+  planList.addEventListener('click', e => {
+    const card = e.target.closest('.plan'); if(!card) return;
+    const buy = e.target.closest('[data-buy]');
+    selectPlan(card.dataset.plan);
+    if(buy) showPage('pay');
+  });
+  planList.addEventListener('change', e => { if(e.target.name === 'ewplan') selectPlan(e.target.value); });
+
+  function showPage(name){
+    page = name;
+    progress.classList.remove('run'); void progress.offsetWidth; progress.classList.add('run');
+    pgPlans.hidden = name !== 'plans';
+    pgReview.hidden = name !== 'review';
+    pgPay.hidden = name !== 'pay';
+    appCta.hidden = name !== 'review';
+    setUrl(name === 'plans' ? '/ewplans' : '/payment', name !== 'plans');
+    const el = pageEl(name);
+    if(name === 'pay' && selected){
+      const yrs = selected.validity.replace('Valid for ','');
+      document.getElementById('psName').textContent = selected.name;
+      document.getElementById('psDesc').textContent = 'Battery extended warranty \u00b7 ' + yrs;
+      document.getElementById('psPrice').textContent = inr(totalOf(selected));
+      document.getElementById('psPrice2').textContent = inr(selected.price);
+      document.getElementById('psGst').textContent = inr(gstOf(selected));
+      document.getElementById('psTotal').textContent = inr(totalOf(selected));
+      document.getElementById('payAmt').textContent = inr(totalOf(selected));
+      updatePayBtn();
+    }
+    el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter');
+    if(name === 'review' && selected){
+      document.getElementById('rvName').textContent = selected.name;
+      document.getElementById('rvValid').textContent = selected.validity;
+      document.getElementById('rvPrice').textContent = inr(selected.price);
+      document.getElementById('rvGst').textContent = inr(gstOf(selected));
+      document.getElementById('rvTotal').textContent = inr(totalOf(selected));
+      document.getElementById('ctaAmt').textContent = inr(totalOf(selected));
+    }
+    webview.scrollTop = 0;
+    if(name === 'plans' && selected){
+      const c = planList.querySelector(`.plan[data-plan="${selected.id}"]`);
+      requestAnimationFrame(() => c && c.scrollIntoView({block:'center'}));
+    }
+    document.getElementById('appBack').focus({preventScroll:true});
+  }
+
+  function openApp(from){
+    launcher = from;
+    clearTimeout(splashTimer);
+    closeSheet(true);
+    page = 'plans'; selected = null; selectPlan('');
+    pgPlans.hidden = false; pgReview.hidden = true; pgPay.hidden = true; appCta.hidden = true;
+    app.classList.remove('native','to-bg','back-in'); document.getElementById('pg-confirm').hidden = true;
+    setUrl('/ewplans', false); resetPayment();
+    app.hidden = false;
+    app.classList.remove('closing'); app.classList.add('opening','is-splash');
+    splash.classList.remove('done');
+    splash.setAttribute('aria-hidden','false');
+    splashTimer = setTimeout(() => {
+      splash.classList.add('done');
+      splash.setAttribute('aria-hidden','true');
+      app.classList.remove('is-splash');
+      progress.classList.remove('run'); void progress.offsetWidth; progress.classList.add('run');
+      webview.scrollTop = 0;
+      document.getElementById('appBack').focus({preventScroll:true});
+    }, 1900);
+  }
+
+  function closeApp(){
+    clearTimeout(splashTimer);
+    closeSheet(true);
+    app.classList.remove('opening'); app.classList.add('closing');
+    setTimeout(() => {
+      app.hidden = true; app.classList.remove('closing');
+      launcher && launcher.focus({preventScroll:true});
+    }, 260);
+  }
+
+  function openSheet(){
+    const mName = {gpay:'Google Pay', card:'Card', nb:'Netbanking'}[method] || '';
+    document.getElementById('sheetMsg').textContent = selected && mName
+      ? `${mName} payments aren't available right now. Please use Google Pay to pay ${inr(totalOf(selected))} for ${selected.name}. You haven't been charged.`
+      : "This payment method isn't available right now. You haven't been charged.";
+    sheet.hidden = false;
+    requestAnimationFrame(() => sheet.classList.add('show'));
+    document.getElementById('sheetWA').focus();
+  }
+  function closeSheet(instant){
+    sheet.classList.remove('show');
+    if(instant) sheet.hidden = true; else setTimeout(() => { sheet.hidden = true; }, 220);
+  }
+
+  // Back stack inside the webview: review → payment → plans → leave app.
+  const goBack = () => { if(page === 'review') showPage('pay'); else if(page === 'pay') showPage('plans'); else closeApp(); }; // 'confirm' → leaves app
+  document.getElementById('appBack').addEventListener('click', goBack);
+  // In-app browser toolbar: back steps through the web pages, then leaves the webview.
+  document.getElementById('wvBack').addEventListener('click', goBack);
+  document.getElementById('wvReload').addEventListener('click', () => {
+    progress.classList.remove('run'); void progress.offsetWidth; progress.classList.add('run');
+    const el = pageEl(page);
+    el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter');
+    webview.scrollTop = 0;
+  });
+  document.getElementById('rvChange').addEventListener('click', () => showPage('plans'));
+  document.getElementById('toPay').addEventListener('click', () => showPage('pay'));
+  document.getElementById('sheetPlans').addEventListener('click', () => { closeSheet(); showPage('plans'); });
+  document.getElementById('sheetWA').addEventListener('click', closeApp);
+  sheet.addEventListener('click', e => { if(e.target === sheet) closeSheet(); });
+  document.addEventListener('keydown', e => {
+    if(e.key !== 'Escape' || app.hidden || !gp.hidden) return;
+    if(!sheet.hidden) closeSheet();
+    else goBack();
+  });
+
+  /* ---- ACKO payment page (prototype only: nothing is charged or sent) ---- */
+  function pageEl(n){ return n === 'plans' ? pgPlans : n === 'pay' ? pgPay : pgReview; }
+  function setUrl(path, sample){
+    document.getElementById('urlPath').textContent = path;
+    document.getElementById('urlTag').hidden = true;
+    document.getElementById('urlBar').title = 'https://www.acko.com' + path + '';
+  }
+  const methodsEl = document.getElementById('methods');
+  const payBtn = document.getElementById('payNow');
+  function updatePayBtn(){
+    if(paying) return;
+    payBtn.disabled = !method;
+    payBtn.textContent = !method || !selected ? 'Select a method' : method === 'gpay' ? 'Pay via Google Pay' : 'Pay ' + inr(totalOf(selected));
+  }
+  function setMethod(m){
+    method = m;
+    methodsEl.querySelectorAll('.m').forEach(row => {
+      const on = row.dataset.m === m;
+      row.classList.toggle('on', on);
+      row.querySelector('.m-head').setAttribute('aria-checked', on);
+      row.querySelector('.m-panel').hidden = !on;
+    });
+    updatePayBtn();
+  }
+  function resetPayment(){
+    paying = false; setMethod(null);
+    methodsEl.querySelectorAll('input').forEach(i => i.value = '');
+    methodsEl.querySelectorAll('.bank').forEach(b => b.setAttribute('aria-pressed','false'));
+  }
+  methodsEl.addEventListener('click', e => {
+    const head = e.target.closest('.m-head');
+    if(head) setMethod(head.closest('.m').dataset.m);
+    const bank = e.target.closest('.bank');
+    if(bank) methodsEl.querySelectorAll('.bank').forEach(b => b.setAttribute('aria-pressed', b === bank));
+  });
+  document.getElementById('psOpen').addEventListener('click', () => showPage('review'));
+  payBtn.addEventListener('click', () => {
+    if(!method || paying) return;
+    paying = true; payBtn.disabled = true;
+    if(method === 'gpay'){
+      payBtn.innerHTML = '<span class="spin" aria-hidden="true"></span>Opening\u2026';
+      setTimeout(launchGpay, 800);
+      return;
+    }
+    payBtn.innerHTML = '<span class="spin" aria-hidden="true"></span>Processing\u2026';
+    setTimeout(() => { paying = false; updatePayBtn(); openSheet(); }, 1400);
+  });
+
+  /* ================= Simulated Google Pay → UPI PIN → back to VIDA ================= */
+  // Prototype only: fictional PIN, no real credentials collected, no transaction made.
+  const DEMO_PIN = '1234';
+  const gp = document.getElementById('gpay');
+  const pinDots = document.getElementById('pinDots');
+  const pinMsg = document.getElementById('pinMsg');
+  const DEMO_PIN_MSG = pinMsg.innerHTML;
+  let pin = '', attempts = 0, reveal = false, gpBusy = false;
+  document.getElementById('gpAckoLogo').src = document.querySelector('.pay-hero .logo').src;
+  const plain = n => n.toLocaleString('en-IN');
+
+  function gpView(v){
+    gp.dataset.view = v;
+    gp.querySelectorAll('.gp-view').forEach(x => x.hidden = x.dataset.v !== v);
+    const f = {pay:'#gpPay', pin:'[data-k="1"]', fail:'#gpFailBack'}[v];
+    if(f) requestAnimationFrame(() => gp.querySelector(f).focus({preventScroll:true}));
+  }
+  function renderPin(){
+    pinDots.classList.toggle('reveal', reveal);
+    pinDots.querySelectorAll('i').forEach((d,i) => {
+      d.classList.toggle('f', i < pin.length);
+      d.textContent = reveal && i < pin.length ? pin[i] : '';
+    });
+  }
+  function launchGpay(){
+    if(!selected){ paying = false; updatePayBtn(); return; }
+    pin = ''; attempts = 0; reveal = false; gpBusy = false; renderPin();
+    pinMsg.className = 'pin-msg'; pinMsg.innerHTML = DEMO_PIN_MSG;
+    document.getElementById('pinShow').setAttribute('aria-pressed','false');
+    document.getElementById('gpAmt').textContent = plain(totalOf(selected));
+    document.getElementById('gpDoneAmt').textContent = plain(totalOf(selected));
+    document.getElementById('gpNote').textContent = selected.name + ' · Battery EW';
+    document.getElementById('gpPay').textContent = 'Pay ' + inr(totalOf(selected)).replace(' ','');
+    document.getElementById('pinAmt').textContent = '₹' + totalOf(selected).toLocaleString('en-IN',{minimumFractionDigits:2});
+    gpView('pay');
+    app.classList.remove('opening','back-in'); app.classList.add('to-bg');          // leave VIDA
+    setTimeout(() => { gp.hidden = false; gp.classList.remove('gp-out'); gp.classList.add('gp-in'); }, 260);
+  }
+  function leaveGpay(result){
+    if(gp.hidden) return;
+    gp.classList.remove('gp-in'); gp.classList.add('gp-out');                       // leave GPay
+    setTimeout(() => {
+      gp.hidden = true; gp.classList.remove('gp-out');
+      app.classList.remove('to-bg'); app.classList.add('back-in');                    // return to VIDA
+      setTimeout(() => app.classList.remove('back-in'), 480);
+      paying = false; updatePayBtn();
+      if(result === 'success') showConfirm();
+      else {
+        toast(result === 'fail' ? 'Payment failed. You haven’t been charged.' : 'Payment cancelled. You haven’t been charged.');
+        payBtn.focus({preventScroll:true});
+      }
+    }, 300);
+  }
+  function pinKey(k){
+    if(gpBusy || gp.dataset.view !== 'pin') return;
+    if(k === 'del'){ pin = pin.slice(0,-1); renderPin(); return; }
+    if(k === 'ok'){ submitPin(); return; }
+    if(pin.length < 4){ pin += k; renderPin(); }
+  }
+  function submitPin(){
+    if(pin.length < 4){
+      pinMsg.className = 'pin-msg err'; pinMsg.textContent = 'Enter all 4 digits.';
+      pinDots.classList.remove('shake'); void pinDots.offsetWidth; pinDots.classList.add('shake'); return;
+    }
+    if(pin === DEMO_PIN){
+      gpBusy = true; gpView('proc');
+      setTimeout(() => { gpView('done'); setTimeout(() => leaveGpay('success'), 1700); }, 1300);
+      return;
+    }
+    attempts++; pin = ''; renderPin();
+    pinDots.classList.remove('shake'); void pinDots.offsetWidth; pinDots.classList.add('shake');
+    if(attempts >= 3){ gpBusy = true; setTimeout(() => gpView('fail'), 450); return; }
+    pinMsg.className = 'pin-msg err';
+    pinMsg.innerHTML = `Incorrect PIN. ${3 - attempts} attempt${3 - attempts > 1 ? 's' : ''} left.`;
+  }
+  document.getElementById('gpPay').addEventListener('click', () => gpView('pin'));
+  document.getElementById('gpClose').addEventListener('click', () => leaveGpay('cancel'));
+  document.getElementById('pinCancel').addEventListener('click', () => { if(!gpBusy){ pin=''; renderPin(); gpView('pay'); } });
+  document.getElementById('gpFailBack').addEventListener('click', () => leaveGpay('fail'));
+  document.getElementById('pinShow').addEventListener('click', e => {
+    reveal = !reveal; e.currentTarget.setAttribute('aria-pressed', reveal);
+    e.currentTarget.textContent = reveal ? 'HIDE' : 'SHOW'; renderPin();
+  });
+  document.getElementById('pinPad').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if(b) pinKey(b.dataset.k); });
+  document.addEventListener('keydown', e => {
+    if(gp.hidden) return;
+    if(gp.dataset.view === 'pin'){
+      if(/^[0-9]$/.test(e.key)){ e.preventDefault(); pinKey(e.key); }
+      else if(e.key === 'Backspace'){ e.preventDefault(); pinKey('del'); }
+      else if(e.key === 'Enter'){ e.preventDefault(); pinKey('ok'); }
+      else if(e.key === 'Escape' && !gpBusy){ pin=''; renderPin(); gpView('pay'); }
+    } else if(e.key === 'Escape' && gp.dataset.view === 'pay') leaveGpay('cancel');
+  });
+
+  function showConfirm(){
+    const p = selected;
+    const exp = new Date(); exp.setFullYear(exp.getFullYear() + p.years);
+    const expStr = exp.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+    document.getElementById('cfName').textContent = p.name;
+    document.getElementById('cfMember').textContent = p.years + ' year' + (p.years > 1 ? 's' : '') + ' membership';
+    document.getElementById('cfCert').textContent = 'TW' + String(Math.floor(Math.random()*1e12)).padStart(12,'0');
+    document.getElementById('cfExpiry').textContent = expStr;
+    document.getElementById('cfExp2').textContent = expStr;
+    document.getElementById('cfPaid').textContent = inr(totalOf(p)) + ' (incl. GST)';
+    document.getElementById('cfTxn').textContent = String(Math.floor(1e11 + Math.random()*9e11));
+    document.getElementById('cfPlan').textContent = p.name;
+    document.getElementById('cfPrice').textContent = inr(p.price);
+    document.getElementById('cfBenefits').innerHTML = p.benefits.map(b => `<li>${b}</li>`).join('');
+    closeSheet(true);
+    page = 'confirm';
+    app.classList.add('native');
+    const v = document.getElementById('pg-confirm');
+    v.hidden = false; v.scrollTop = 0;
+    document.getElementById('appBack').focus({preventScroll:true});
+  }
+  document.getElementById('cfDone').addEventListener('click', closeApp);
+  document.querySelectorAll('[data-app-proto]').forEach(b =>
+    b.addEventListener('click', () => toast(b.dataset.appProto + ' isn’t part of this prototype')));
+
+  // Composer
+  function updateSendState(){
+    sendBtn.classList.toggle('has-text', input.value.trim().length > 0);
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 100) + 'px';
+  }
+  input.addEventListener('input', updateSendState);
+  input.addEventListener('keydown', e => {
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); submit(); }
+  });
+  form.addEventListener('submit', e => { e.preventDefault(); submit(); });
+  sendBtn.addEventListener('click', () => {
+    if(input.value.trim()) submit();
+    else { toast('Voice notes aren’t part of this prototype'); input.focus(); }
+  });
+  function submit(){
+    const v = input.value;
+    if(!v.trim() || busy) return;
+    input.value = '';
+    updateSendState();
+    customerSays(v);
+    input.focus();
+  }
+
+  // Non-scope chrome (call, menu, attach, etc.) gives honest feedback instead of being dead.
+  let toastTimer;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1800);
+  }
+  document.querySelectorAll('[data-proto]').forEach(b => {
+    b.addEventListener('click', () => toast(b.dataset.proto + ' isn’t part of this prototype'));
+  });
+
+})();
+</script>
+
+</body>
+</html>
